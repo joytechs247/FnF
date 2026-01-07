@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+
+
+
+
+@layer base {
+  :root {
+    --primary: #FF6B8B;
+    --secondary: #4ECDC4;
+    --accent: #FFD166;
+    --dark: #2A2D43;
+    --light: #F7F9FC;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--primary)] text-white px-6 py-3 rounded-full font-semibold hover:scale-105 transition-transform duration-200 shadow-lg hover:shadow-xl;
+  }
+
+  .btn-secondary {
+    @apply bg-[var(--secondary)] text-white px-6 py-3 rounded-full font-semibold hover:scale-105 transition-transform duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgb(255_107_139_/_0.3)] outline-none transition-all;
+  }
+
+}
+
+
+
+.nav-link {
+  @apply text-gray-700 hover:text-[var(--primary)] font-medium transition-colors;
+}
+
+.mobile-link {
+  @apply text-gray-700 hover:text-[var(--primary)] font-medium;
+}
+
+.dropdown-item {
+  @apply block px-4 py-2 text-gray-700 hover:bg-gray-100;
+}
