@@ -22,22 +22,22 @@ export default function ContactPage() {
       details: ['support@fibresnfools.com', 'returns@fibresnfools.com'],
       color: 'text-blue-500'
     },
-    {
-      icon: <FiPhone />,
-      title: 'Phone',
-      details: ['+91 98765 43210', 'Mon-Sat: 10 AM - 7 PM'],
-      color: 'text-green-500'
-    },
-    {
-      icon: <FiMapPin />,
-      title: 'Address',
-      details: ['123 Fashion Street', 'City, State 123456', 'India'],
-      color: 'text-red-500'
-    },
+    // {
+    //   icon: <FiPhone />,
+    //   title: 'Phone',
+    //   details: ['+91 98765 43210', 'Mon-Sat: 10 AM - 7 PM'],
+    //   color: 'text-green-500'
+    // },
+    // {
+    //   icon: <FiMapPin />,
+    //   title: 'Address',
+    //   details: ['123 Fashion Street', 'City, State 123456', 'India'],
+    //   color: 'text-red-500'
+    // },
     {
       icon: <FiMessageSquare />,
       title: 'Live Chat',
-      details: ['WhatsApp: +91 98765 43210', 'Response within 30 mins'],
+      details: ['WhatsApp: +91 96517 43565', 'Response within 30 mins'],
       color: 'text-purple-500'
     }
   ]
@@ -92,17 +92,17 @@ export default function ContactPage() {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch! 👋</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch! </h1>
           <p className="text-gray-600 text-lg">
             We're here to help with any questions about orders, products, or just to chat about fashion!
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto place-items-center">
           {/* Contact Information Cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {/* <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 place-items-center">
             {contactInfo.map((info, index) => (
-              <div key={index} className="card p-6 text-center hover:scale-[1.02] transition-transform">
+              <div key={index} className="card p-6 text-center hover:scale-[1.02] transition-transform w-full max-w-xs">
                 <div className={`text-3xl mb-4 ${info.color}`}>{info.icon}</div>
                 <h3 className="font-bold text-gray-900 mb-3">{info.title}</h3>
                 <div className="space-y-1">
@@ -112,7 +112,7 @@ export default function ContactPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </div> */}
 
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
@@ -233,7 +233,11 @@ export default function ContactPage() {
                   We typically respond within 24 hours during business days.
                 </p>
               </form>
+
+              
             </div>
+
+            
 
             {/* FAQ & Additional Info */}
             <div className="space-y-8">
@@ -292,7 +296,7 @@ export default function ContactPage() {
                   Prefer instant messaging? Chat with our support team on WhatsApp for quick answers.
                 </p>
                 <a
-                  href="https://wa.me/919876543210"
+                  href="https://wa.me/919651743565"
                   target="_blank"
                   className="w-full inline-flex items-center justify-center gap-3 bg-green-500 text-white px-6 py-4 rounded-full font-semibold hover:bg-green-600 transition-colors"
                 >

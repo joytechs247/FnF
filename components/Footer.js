@@ -11,8 +11,14 @@ export default function Footer() {
           {/* Brand Column */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full"></div>
-              <span className="text-2xl font-bold">FibresNFools</span>
+              
+              <Link href="/" className="flex items-center space-x-2">
+                <img
+                  src="/logo.png"   // put your logo in /public/logo.png
+                  alt="FibresNFools"
+                  className="h-15 w-full object-contain"
+                />
+              </Link>
             </div>
             <p className="text-gray-400 mb-6">
               We create streetwear that makes you smile. Quality fabrics, quirky designs, and good vibes only.
@@ -38,27 +44,27 @@ export default function Footer() {
             <h3 className="text-lg font-bold mb-6">Shop Quick</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/shop?category=tshirts" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/shop/categories/tshirts" className="text-gray-400 hover:text-white transition-colors">
                   T-Shirts
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=hoodies" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/categories/hoodies" className="text-gray-400 hover:text-white transition-colors">
                   Hoodies & Sweatshirts
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=oversized" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/categories/oversized" className="text-gray-400 hover:text-white transition-colors">
                   Oversized Tees
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=accessories" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/categories/accessories" className="text-gray-400 hover:text-white transition-colors">
                   Accessories
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=new" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/categories/new-arrivals" className="text-gray-400 hover:text-white transition-colors">
                   New Arrivals
                 </Link>
               </li>
@@ -98,7 +104,7 @@ export default function Footer() {
           </div>
 
           {/* Newsletter */}
-          <div>
+          {/* <div>
             <h3 className="text-lg font-bold mb-6">Stay in the Loop</h3>
             <p className="text-gray-400 mb-4">
               Get exclusive deals, new drops, and behind-the-scenes content!
@@ -117,20 +123,20 @@ export default function Footer() {
                 Subscribe
               </button>
             </form>
-          </div>
+          </div> */}
         </div>
 
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © {currentYear} FibresNFools. All rights reserved. Made with <FiHeart className="inline text-red-500" /> for the Gen-Z.
+              © {currentYear} FibresNFools. All rights reserved.
             </p>
             <div className="flex items-center space-x-6 mt-4 md:mt-0">
               <span className="text-gray-400 text-sm">Secure Payment:</span>
               <div className="flex space-x-2">
                 <div className="bg-gray-800 px-3 py-1 rounded text-xs">UPI</div>
                 <div className="bg-gray-800 px-3 py-1 rounded text-xs">Cards</div>
-                <div className="bg-gray-800 px-3 py-1 rounded text-xs">Net Banking</div>
+
               </div>
             </div>
           </div>

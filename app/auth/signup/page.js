@@ -129,10 +129,10 @@ export default function SignupPage() {
             <span className="text-3xl font-bold text-gray-900">FibresNFools</span>
           </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Join the FnF Family! 🎉
+            Join the FnF Family! 
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Create your account and get 15% off your first order
+            Create your account and get started!
           </p>
         </div>
 

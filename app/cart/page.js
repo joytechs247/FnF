@@ -1,15 +1,55 @@
 'use client'
 
 import { useCart } from '@/context/CartContext'
+import { useAuth } from '@/context/AuthContext'
 import { FiTrash2, FiPlus, FiMinus, FiArrowRight, FiShoppingBag } from 'react-icons/fi'
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import * as firestore from '@/lib/firestore'
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart()
+  const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart, loading: cartLoading } = useCart()
+  const { user, userProfile } = useAuth()
+  const [userAddresses, setUserAddresses] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (user) {
+      loadUserAddresses()
+    } else {
+      setLoading(false)
+    }
+  }, [user])
+
+  const loadUserAddresses = async () => {
+    try {
+      const addresses = await firestore.getUserAddresses(user.uid)
+      setUserAddresses(addresses)
+    } catch (error) {
+      console.error('Error loading addresses:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const cartTotal = getCartTotal()
   const shipping = cartTotal > 1499 ? 0 : 99
   const total = cartTotal + shipping
+
+  if (cartLoading) {
+    return (
+      <div className="min-h-screen py-16">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading cart...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (cart.length === 0) {
     return (
@@ -46,28 +86,40 @@ export default function CartPage() {
           <div className="lg:col-span-2">
             <div className="space-y-4">
               {cart.map((item) => (
-                <div key={`${item.id}-${item.size}`} className="card p-6">
+                <div key={item.id} className="card p-6">
                   <div className="flex flex-col sm:flex-row gap-6">
                     {/* Product Image */}
                     <div className="flex-shrink-0">
-                      <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
-                        <div className="text-3xl">{item.emoji}</div>
+                      <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden flex items-center justify-center">
+                        {item.productImage ? (
+                          <img
+                            src={item.productImage}
+                            alt={item.productName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src="/placeholder-product.png"
+                            alt="Placeholder"
+                            className="w-12 h-12 object-contain opacity-50"
+                          />
+                        )}
                       </div>
+
                     </div>
 
                     {/* Product Info */}
                     <div className="flex-grow">
                       <div className="flex justify-between">
                         <div>
-                          <h3 className="font-bold text-gray-900">{item.name}</h3>
-                          <p className="text-gray-600 text-sm">{item.category}</p>
-                          <div className="flex items-center gap-4 mt-2">
-                            <span className="text-sm text-gray-600">Size: {item.size}</span>
-                            <span className="text-sm text-gray-600">Color: Black</span>
-                          </div>
+                          <h3 className="font-bold text-gray-900">{item.productName}</h3>
+                          <p className="text-gray-600 text-sm">Size: {item.size}</p>
+                          {item.color && (
+                            <p className="text-gray-600 text-sm">Color: {item.color}</p>
+                          )}
                         </div>
                         <button
-                          onClick={() => removeFromCart(item.id, item.size)}
+                          onClick={() => removeFromCart(item.id)}
                           className="text-gray-400 hover:text-red-500"
                         >
                           <FiTrash2 />
@@ -77,14 +129,14 @@ export default function CartPage() {
                       <div className="flex items-center justify-between mt-4">
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-100"
                           >
                             <FiMinus />
                           </button>
                           <span className="w-12 text-center">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-100"
                           >
                             <FiPlus />
@@ -132,7 +184,7 @@ export default function CartPage() {
                     )}
                   </span>
                 </div>
-                {shipping > 0 && (
+                {shipping > 0 && cartTotal < 1499 && (
                   <div className="text-sm text-green-600">
                     Add ₹{(1499 - cartTotal).toFixed(2)} more for free shipping!
                   </div>
@@ -147,25 +199,45 @@ export default function CartPage() {
                 <p className="text-sm text-gray-500 mt-2">Inclusive of all taxes</p>
               </div>
 
-              <Link
-                href="/checkout"
-                className="block w-full btn-primary text-center mb-4"
-              >
-                Proceed to Checkout
-              </Link>
+              {user ? (
+                <Link
+                  href="/checkout"
+                  className="block w-full btn-primary text-center mb-4"
+                >
+                  Proceed to Checkout
+                </Link>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  className="block w-full btn-primary text-center mb-4"
+                >
+                  Login to Checkout
+                </Link>
+              )}
 
               <p className="text-sm text-center text-gray-500">
                 You'll be able to review your order before payment
               </p>
+
+              {/* Delivery Address */}
+              {user && userAddresses.length > 0 && (
+                <div className="mt-8 pt-6 border-t">
+                  <h3 className="font-semibold text-gray-900 mb-3">Delivery to</h3>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium">{userAddresses[0].name}</p>
+                    <p className="text-sm text-gray-600 truncate">{userAddresses[0].address}</p>
+                    <p className="text-sm text-gray-600">{userAddresses[0].phone}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Payment Methods */}
               <div className="mt-8 pt-6 border-t">
                 <h3 className="font-semibold text-gray-900 mb-3">We Accept</h3>
                 <div className="flex flex-wrap gap-2">
                   <div className="px-3 py-1 bg-gray-100 rounded-full text-sm">UPI</div>
-                  <div className="px-3 py-1 bg-gray-100 rounded-full text-sm">Cards</div>
-                  <div className="px-3 py-1 bg-gray-100 rounded-full text-sm">Net Banking</div>
-                  <div className="px-3 py-1 bg-gray-100 rounded-full text-sm">Wallet</div>
+                  <div className="px-3 py-1 bg-gray-100 rounded-full text-sm">Whatsapp</div>
+
                 </div>
               </div>
             </div>

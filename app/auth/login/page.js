@@ -91,7 +91,7 @@ export default function LoginPage() {
         </div>
 
         {/* Demo Accounts */}
-        <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-200">
+        {/* <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-200">
           <p className="text-sm text-gray-600 mb-3 font-medium">Try demo accounts:</p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -107,7 +107,7 @@ export default function LoginPage() {
               Admin Demo
             </button>
           </div>
-        </div>
+        </div> */}
 
         <div className="card p-8">
           {/* Error/Success Messages */}

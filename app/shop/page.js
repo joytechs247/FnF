@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ProductCard from '@/components/ProductCard'
 import { FiFilter, FiGrid, FiList, FiChevronDown, FiX } from 'react-icons/fi'
-import products from '@/data/products.json'
+import * as firestore from '@/lib/firestore'
 
 export default function ShopPage() {
   const [viewMode, setViewMode] = useState('grid')
@@ -11,21 +11,54 @@ export default function ShopPage() {
   const [selectedCategories, setSelectedCategories] = useState([])
   const [priceRange, setPriceRange] = useState([0, 5000])
   const [sortBy, setSortBy] = useState('newest')
+  const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const categories = [
-    { id: 'tshirts', label: 'T-Shirts', count: 42 },
-    { id: 'hoodies', label: 'Hoodies', count: 18 },
-    { id: 'oversized', label: 'Oversized', count: 24 },
-    { id: 'sweatshirts', label: 'Sweatshirts', count: 16 },
-    { id: 'accessories', label: 'Accessories', count: 32 },
-  ]
 
-  const sortOptions = [
-    { id: 'newest', label: 'Newest First' },
-    { id: 'price-low', label: 'Price: Low to High' },
-    { id: 'price-high', label: 'Price: High to Low' },
-    { id: 'popular', label: 'Most Popular' },
-  ]
+//   const search = searchParams.get('search')
+// if (search) {
+//   filters.search = search
+// }
+
+  useEffect(() => {
+    loadProducts()
+    loadCategories()
+  }, [])
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const filters = {}
+      if (selectedCategories.length > 0) {
+        filters.category = selectedCategories[0] // Firestore supports only one 'in' query
+      }
+
+      if (sortBy) {
+        filters.sortBy = sortBy
+      }
+
+      const fetchedProducts = await firestore.getProducts(filters)
+      setProducts(fetchedProducts)
+    } catch (err) {
+      console.error('Error loading products:', err)
+      setError('Failed to load products. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadCategories = async () => {
+    try {
+      const fetchedCategories = await firestore.getCategories()
+      setCategories(fetchedCategories)
+    } catch (err) {
+      console.error('Error loading categories:', err)
+    }
+  }
 
   const toggleCategory = (categoryId) => {
     setSelectedCategories(prev =>
@@ -41,6 +74,7 @@ export default function ShopPage() {
     setSortBy('newest')
   }
 
+  // Apply client-side filtering for price range and multiple categories
   const filteredProducts = products
     .filter(product => {
       if (selectedCategories.length > 0) {
@@ -51,18 +85,21 @@ export default function ShopPage() {
     .filter(product => {
       return product.price >= priceRange[0] && product.price <= priceRange[1]
     })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return a.price - b.price
-        case 'price-high':
-          return b.price - a.price
-        case 'newest':
-          return new Date(b.date) - new Date(a.date)
-        default:
-          return b.popularity - a.popularity
-      }
-    })
+
+  if (loading) {
+    return (
+      <div className="min-h-screen py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading products...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen py-8">
@@ -71,20 +108,17 @@ export default function ShopPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Shop Everything</h1>
           <p className="text-gray-600">
-            {filteredProducts.length} products found • Your one-stop for quirky streetwear
+             • Your one-stop for quirky streetwear
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Mobile Filter Button */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="lg:hidden flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-full font-semibold"
-          >
-            <FiFilter />
-            Filters & Sorting
-          </button>
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
 
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Filters */}
           <div className={`lg:w-1/4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
@@ -120,31 +154,13 @@ export default function ShopPage() {
                           onChange={() => toggleCategory(category.id)}
                           className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                         />
-                        <span className="text-gray-700">{category.label}</span>
+                        <span className="text-gray-700 capitalize">
+                          {category.name}
+                        </span>
                       </div>
-                      <span className="text-gray-500 text-sm">{category.count}</span>
                     </label>
-                  ))}
-                </div>
-              </div>
 
-              {/* Price Range */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-gray-900 mb-4">Price Range</h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>₹{priceRange[0]}</span>
-                    <span>₹{priceRange[1]}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="5000"
-                    step="100"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)]"
-                  />
+                  ))}
                 </div>
               </div>
 
@@ -152,7 +168,12 @@ export default function ShopPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-4">Sort By</h3>
                 <div className="space-y-2">
-                  {sortOptions.map(option => (
+                  {[
+                    { id: 'newest', label: 'Newest First' },
+                    { id: 'price-low', label: 'Price: Low to High' },
+                    { id: 'price-high', label: 'Price: High to Low' },
+                    { id: 'popular', label: 'Most Popular' },
+                  ].map(option => (
                     <label
                       key={option.id}
                       className="flex items-center gap-3 cursor-pointer"
@@ -161,7 +182,10 @@ export default function ShopPage() {
                         type="radio"
                         name="sort"
                         checked={sortBy === option.id}
-                        onChange={() => setSortBy(option.id)}
+                        onChange={() => {
+                          setSortBy(option.id)
+                          loadProducts()
+                        }}
                         className="w-4 h-4 border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                       />
                       <span className="text-gray-700">{option.label}</span>
@@ -175,7 +199,7 @@ export default function ShopPage() {
           {/* Main Content */}
           <div className="lg:w-3/4">
             {/* View Controls */}
-            <div className="flex justify-between items-center mb-6">
+            {/* <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -194,15 +218,15 @@ export default function ShopPage() {
               <div className="text-gray-600">
                 Showing {filteredProducts.length} of {products.length} products
               </div>
-            </div>
+            </div> */}
 
             {/* Products Grid/List */}
             {filteredProducts.length > 0 ? (
-              <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-6'}`}>
+              <div className={`${viewMode === 'grid' ? '  grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6' : 'space-y-6'}`}>
                 {filteredProducts.map(product => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
+                  <ProductCard
+                    key={product.id}
+                    product={product}
                     viewMode={viewMode}
                   />
                 ))}
@@ -217,15 +241,6 @@ export default function ShopPage() {
                   className="btn-primary"
                 >
                   Clear All Filters
-                </button>
-              </div>
-            )}
-
-            {/* Load More */}
-            {filteredProducts.length > 0 && (
-              <div className="text-center mt-12">
-                <button className="px-8 py-3 rounded-full border-2 border-gray-300 text-gray-700 font-semibold hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors">
-                  Load More Products
                 </button>
               </div>
             )}

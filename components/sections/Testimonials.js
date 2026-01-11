@@ -86,7 +86,7 @@ export default function Testimonials() {
         </div>
 
         {/* Social Proof */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -101,7 +101,7 @@ export default function Testimonials() {
             <span className="text-gray-600">#WearTheFun</span>
             <span className="text-gray-600">#FNFVibes</span>
           </div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   )

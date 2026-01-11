@@ -5,7 +5,7 @@ import { FiMessageSquare } from 'react-icons/fi'
 export default function WhatsAppButton() {
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent("Hey FibresNFools! 👋 I need some help with my order.")
-    window.open(`https://wa.me/919876543210?text=${message}`, '_blank')
+    window.open(`https://wa.me/919651743565?text=${message}`, '_blank')
   }
 
   return (

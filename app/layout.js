@@ -11,6 +11,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata = {
   title: 'FibresNFools - Playful Streetwear for Gen-Z',
   description: 'Fun, colorful, and quirky streetwear that speaks your language. Quality apparel with a touch of humor.',
+  icons: {
+    icon: [{ url: '/favicon.ico' }],
+  },
 }
 
 export default function RootLayout({ children }) {

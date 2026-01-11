@@ -1,56 +1,130 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
 import { FiMapPin, FiPackage, FiCreditCard, FiCheck, FiArrowRight, FiEdit2 } from 'react-icons/fi'
 import Link from 'next/link'
+import * as firestore from '@/lib/firestore'
+import { serverTimestamp } from 'firebase/firestore'
 
 export default function CheckoutPage() {
-  const { cart, getCartTotal, clearCart } = useCart()
-  const { user } = useAuth()
+
+  const [showUpiModal, setShowUpiModal] = useState(false)
+  const [showWhatsappModal, setShowWhatsappModal] = useState(false)
+
+  const { cart, getCartTotal, clearCart, syncGuestCartToUser } = useCart()
+  const { user, userProfile, addAddress } = useAuth()
   const [step, setStep] = useState(1)
   const [paymentMethod, setPaymentMethod] = useState('upi')
   const [isOrderPlaced, setIsOrderPlaced] = useState(false)
+  const [addresses, setAddresses] = useState([])
+  const [selectedAddress, setSelectedAddress] = useState(null)
+  const [newAddress, setNewAddress] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    landmark: ''
+  })
+  const [loading, setLoading] = useState(true)
+  const [orderId, setOrderId] = useState(null)
+
+  useEffect(() => {
+    if (user) {
+      loadUserAddresses()
+    } else {
+      setLoading(false)
+    }
+  }, [user])
+
+
+
+  const loadUserAddresses = async () => {
+    try {
+      const userAddresses = await firestore.getUserAddresses(user.uid)
+      setAddresses(userAddresses)
+      if (userAddresses.length > 0) {
+        setSelectedAddress(userAddresses[0])
+      }
+    } catch (error) {
+      console.error('Error loading addresses:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const cartTotal = getCartTotal()
-  const shipping = cartTotal > 1499 ? 0 : 99
+  const shipping = cartTotal > 499 ? 0 : 99
   const total = cartTotal + shipping
 
-  // Mock addresses
-  const addresses = [
-    {
-      id: 1,
-      name: 'Home',
-      address: '123 Street, City, State 123456',
-      phone: '+91 9876543210',
-      isDefault: true
-    },
-    {
-      id: 2,
-      name: 'Office',
-      address: '456 Corporate Tower, Business District',
-      phone: '+91 9876543211',
-      isDefault: false
+  const handleAddAddress = async () => {
+    if (!user) return
+
+    try {
+      const address = await addAddress(newAddress)
+      setAddresses([...addresses, address])
+      setSelectedAddress(address)
+      setNewAddress({
+        name: '',
+        phone: '',
+        address: '',
+        city: '',
+        state: '',
+        pincode: '',
+        landmark: ''
+      })
+    } catch (error) {
+      console.error('Error adding address:', error)
+      alert('Failed to add address. Please try again.')
     }
-  ]
-
-  const [selectedAddress, setSelectedAddress] = useState(addresses[0])
-
-  const handlePlaceOrder = () => {
-    // In a real app, save order to Firestore here
-    console.log('Order placed:', {
-      items: cart,
-      total,
-      address: selectedAddress,
-      paymentMethod,
-      user: user?.email
-    })
-    
-    clearCart()
-    setStep(3)
-    setIsOrderPlaced(true)
   }
+
+  const placeFinalOrder = async (paymentMethodUsed) => {
+    if (!user || cart.length === 0 || !selectedAddress) return
+
+    try {
+      setLoading(true)
+
+      const now = new Date().toISOString()
+
+      const order = {
+        userId: user.uid,
+        address: `${selectedAddress.address}, ${selectedAddress.city} - ${selectedAddress.pincode}`,
+        createdAt: now,
+        date: now,
+        items: cart.map(item => ({
+          image: item.productImage,
+          name: item.productName,
+          price: item.price,
+          quantity: item.quantity
+        })),
+        paymentMethod: paymentMethodUsed,
+        status: 'processing',
+        total,
+        trackingLink: ''
+      }
+
+      const createdOrder = await firestore.createOrder(order)
+
+      setOrderId(createdOrder.id)
+      await clearCart()
+
+      setIsOrderPlaced(true)
+      setStep(3)
+
+    } catch (err) {
+      console.error(err)
+      alert('Failed to place order')
+    } finally {
+      setLoading(false)
+      setShowUpiModal(false)
+      setShowWhatsappModal(false)
+    }
+  }
+
 
   // Redirect if not logged in
   if (!user) {
@@ -80,7 +154,22 @@ export default function CheckoutPage() {
     )
   }
 
-  if (cart.length === 0 && !isOrderPlaced) {
+  if (loading) {
+    return (
+      <div className="min-h-screen py-16">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading checkout...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!loading && cart.length === 0 && !isOrderPlaced) {
     return (
       <div className="min-h-screen py-16">
         <div className="container mx-auto px-4 text-center">
@@ -106,19 +195,17 @@ export default function CheckoutPage() {
         <div className="max-w-4xl mx-auto mb-12">
           <div className="flex items-center justify-between relative">
             <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10"></div>
-            
+
             {[1, 2, 3].map((stepNumber) => (
               <div key={stepNumber} className="flex flex-col items-center relative z-10">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                  step >= stepNumber
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'bg-gray-200 text-gray-600'
-                }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step >= stepNumber
+                  ? 'bg-[var(--primary)] text-white'
+                  : 'bg-gray-200 text-gray-600'
+                  }`}>
                   {step > stepNumber ? <FiCheck /> : stepNumber}
                 </div>
-                <span className={`text-sm font-medium ${
-                  step >= stepNumber ? 'text-gray-900' : 'text-gray-600'
-                }`}>
+                <span className={`text-sm font-medium ${step >= stepNumber ? 'text-gray-900' : 'text-gray-600'
+                  }`}>
                   {stepNumber === 1 ? 'Address' : stepNumber === 2 ? 'Payment' : 'Confirmation'}
                 </span>
               </div>
@@ -139,17 +226,16 @@ export default function CheckoutPage() {
                 {addresses.map(address => (
                   <label
                     key={address.id}
-                    className={`block p-4 border-2 rounded-xl cursor-pointer hover:border-[var(--primary)] transition-colors ${
-                      selectedAddress.id === address.id
-                        ? 'border-[var(--primary)] bg-blue-50'
-                        : 'border-gray-200'
-                    }`}
+                    className={`block p-4 border-2 rounded-xl cursor-pointer hover:border-[var(--primary)] transition-colors ${selectedAddress?.id === address.id
+                      ? 'border-[var(--primary)] bg-blue-50'
+                      : 'border-gray-200'
+                      }`}
                   >
                     <div className="flex items-start gap-4">
                       <input
                         type="radio"
                         name="address"
-                        checked={selectedAddress.id === address.id}
+                        checked={selectedAddress?.id === address.id}
                         onChange={() => setSelectedAddress(address)}
                         className="mt-1"
                       />
@@ -163,11 +249,10 @@ export default function CheckoutPage() {
                               </span>
                             )}
                           </div>
-                          <button className="text-gray-400 hover:text-gray-600">
-                            <FiEdit2 />
-                          </button>
+
                         </div>
                         <p className="text-gray-600 mt-2">{address.address}</p>
+                        <p className="text-gray-600 mt-1">{address.city}, {address.state} - {address.pincode}</p>
                         <p className="text-gray-600 mt-1">{address.phone}</p>
                       </div>
                     </div>
@@ -176,13 +261,72 @@ export default function CheckoutPage() {
               </div>
 
               {/* Add New Address */}
-              <button className="w-full p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors mb-8">
-                + Add New Address
-              </button>
+              <div className="mb-8">
+                <h3 className="font-semibold text-gray-900 mb-4">Add New Address</h3>
+                <div className="grid md:grid-cols-2 gap-4 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={newAddress.name}
+                    onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
+                    className="input-field"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Phone Number"
+                    value={newAddress.phone}
+                    onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+                    className="input-field"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Address Line"
+                    value={newAddress.address}
+                    onChange={(e) => setNewAddress({ ...newAddress, address: e.target.value })}
+                    className="input-field md:col-span-2"
+                  />
+                  <input
+                    type="text"
+                    placeholder="City"
+                    value={newAddress.city}
+                    onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                    className="input-field"
+                  />
+                  <input
+                    type="text"
+                    placeholder="State"
+                    value={newAddress.state}
+                    onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+                    className="input-field"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Pincode"
+                    value={newAddress.pincode}
+                    onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })}
+                    className="input-field"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Landmark (Optional)"
+                    value={newAddress.landmark}
+                    onChange={(e) => setNewAddress({ ...newAddress, landmark: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+                <button
+                  onClick={handleAddAddress}
+                  disabled={!newAddress.name || !newAddress.phone || !newAddress.address}
+                  className="w-full p-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  + Add New Address
+                </button>
+              </div>
 
               <button
                 onClick={() => setStep(2)}
-                className="btn-primary w-full flex items-center justify-center gap-2"
+                disabled={!selectedAddress}
+                className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Continue to Payment
                 <FiArrowRight />
@@ -201,17 +345,25 @@ export default function CheckoutPage() {
 
                 <div className="space-y-4">
                   {[
-                    { id: 'upi', name: 'UPI', icon: '📱', description: 'Instant payment with UPI' },
-                    { id: 'card', name: 'Credit/Debit Card', icon: '💳', description: 'Pay with your card' },
-                    { id: 'cod', name: 'Cash on Delivery', icon: '💰', description: 'Pay when you receive' },
+                    {
+                      id: 'upi',
+                      name: 'UPI',
+                      icon: '📱',
+                      description: 'Pay using UPI (QR / UPI ID)',
+                    },
+                    {
+                      id: 'whatsapp',
+                      name: 'WhatsApp',
+                      icon: '💬',
+                      description: 'Order via WhatsApp chat',
+                    },
                   ].map(method => (
                     <label
                       key={method.id}
-                      className={`block p-4 border-2 rounded-xl cursor-pointer hover:border-[var(--primary)] transition-colors ${
-                        paymentMethod === method.id
-                          ? 'border-[var(--primary)] bg-blue-50'
-                          : 'border-gray-200'
-                      }`}
+                      className={`block p-4 border-2 rounded-xl cursor-pointer hover:border-[var(--primary)] transition-colors ${paymentMethod === method.id
+                        ? 'border-[var(--primary)] bg-blue-50'
+                        : 'border-gray-200'
+                        }`}
                     >
                       <div className="flex items-center gap-4">
                         <input
@@ -221,6 +373,7 @@ export default function CheckoutPage() {
                           onChange={() => setPaymentMethod(method.id)}
                           className="w-5 h-5"
                         />
+
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-2xl">{method.icon}</span>
@@ -232,6 +385,7 @@ export default function CheckoutPage() {
                     </label>
                   ))}
                 </div>
+
 
                 {paymentMethod === 'upi' && (
                   <div className="mt-6 p-4 bg-gray-50 rounded-xl">
@@ -263,9 +417,9 @@ export default function CheckoutPage() {
 
                 <div className="space-y-4 mb-6">
                   {cart.map(item => (
-                    <div key={`${item.id}-${item.size}`} className="flex justify-between items-center">
+                    <div key={item.id} className="flex justify-between items-center">
                       <div>
-                        <p className="font-medium">{item.name}</p>
+                        <p className="font-medium">{item.productName}</p>
                         <p className="text-sm text-gray-600">
                           Size: {item.size} × {item.quantity}
                         </p>
@@ -298,18 +452,30 @@ export default function CheckoutPage() {
                   </p>
                 </div>
 
-                <button
-                  onClick={handlePlaceOrder}
-                  className="btn-primary w-full mt-6"
-                >
-                  {paymentMethod === 'upi' ? 'Confirm UPI Payment' : 'Place Order'}
-                </button>
-
                 {paymentMethod === 'upi' && (
+                  <button
+                    onClick={() => setShowUpiModal(true)}
+                    className="btn-primary w-full mt-6"
+                  >
+                    Pay via UPI
+                  </button>
+                )}
+
+                {paymentMethod === 'whatsapp' && (
+                  <button
+                    onClick={() => setShowWhatsappModal(true)}
+                    className="btn-primary w-full mt-6 bg-green-500 hover:bg-green-600"
+                  >
+                    Order via WhatsApp
+                  </button>
+                )}
+
+
+                {/* {paymentMethod === 'upi' && (
                   <button
                     onClick={() => {
                       const message = encodeURIComponent(
-                        `Payment Confirmation for Order\n\n` +
+                        `Payment Confirmation for Order #${orderId}\n\n` +
                         `Total: ₹${total.toFixed(2)}\n` +
                         `Items: ${cart.length}\n` +
                         `Payment Method: UPI\n` +
@@ -321,7 +487,7 @@ export default function CheckoutPage() {
                   >
                     Confirm via WhatsApp
                   </button>
-                )}
+                )} */}
               </div>
             </div>
           )}
@@ -333,13 +499,13 @@ export default function CheckoutPage() {
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
                 Thank you for your order! We've sent a confirmation to your email. Your order will be shipped within 2-3 business days.
               </p>
-              
+
               <div className="bg-gray-50 rounded-xl p-6 max-w-md mx-auto mb-8">
                 <h3 className="font-semibold text-gray-900 mb-4">Order Details</h3>
                 <div className="text-left space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Order ID:</span>
-                    <span className="font-medium">FNF-{Date.now().toString().slice(-8)}</span>
+                    <span className="font-medium">{orderId}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Estimated Delivery:</span>
@@ -347,8 +513,9 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Shipping to:</span>
-                    <span className="font-medium">{selectedAddress.address.split(',')[0]}</span>
+                    <span className="font-medium">{selectedAddress?.city}</span>
                   </div>
+
                 </div>
               </div>
 
@@ -367,6 +534,82 @@ export default function CheckoutPage() {
           )}
         </div>
       </div>
+
+      {showUpiModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center">
+            <h3 className="text-xl font-bold mb-4">UPI Payment</h3>
+
+            <div className="w-48 h-48 bg-gray-100 mx-auto mb-4 flex items-center justify-center rounded-xl">
+              QR IMAGE
+            </div>
+
+            <p className="font-semibold">UPI ID: fibresnfools@upi</p>
+            <p className="mt-2">Amount: ₹{total.toFixed(2)}</p>
+
+            <p className="text-sm text-gray-600 mt-4">
+              Once payment is done, click below
+            </p>
+
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={() => setShowUpiModal(false)}
+                className="flex-1 border rounded-full py-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => placeFinalOrder('upi')}
+                className="flex-1 btn-primary"
+              >
+                I Have Paid
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {showWhatsappModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center">
+            <h3 className="text-xl font-bold mb-4">WhatsApp Order</h3>
+
+            <p className="text-gray-600 mb-6">
+              You will be redirected to WhatsApp.
+              After sending the message, come back and click below.
+            </p>
+
+            <button
+              onClick={() => {
+                const message = encodeURIComponent(
+                  `Order Request\nTotal: ₹${total}\nItems: ${cart.length}`
+                )
+                window.open(`https://wa.me/919651743565?text=${message}`, '_blank')
+              }}
+              className="w-full bg-green-500 text-white py-3 rounded-full mb-4"
+            >
+              Redirect to WhatsApp
+            </button>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowWhatsappModal(false)}
+                className="flex-1 border rounded-full py-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => placeFinalOrder('whatsapp')}
+                className="flex-1 btn-primary"
+              >
+                I Have Messaged
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -1,35 +1,91 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { useCart } from '@/context/CartContext'
 import { FiHeart, FiShare2, FiTruck, FiShield, FiArrowLeft } from 'react-icons/fi'
-import products from '@/data/products.json'
+import * as firestore from '@/lib/firestore'
+import { useAuth } from '@/context/AuthContext'
 
 export default function ProductPage() {
   const params = useParams()
   const { addToCart } = useCart()
+  const { user } = useAuth()
   const [selectedSize, setSelectedSize] = useState('M')
-  const [selectedColor, setSelectedColor] = useState('Black')
+  const [selectedColor, setSelectedColor] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [activeImage, setActiveImage] = useState(0)
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [reviews, setReviews] = useState([])
+  const [relatedProducts, setRelatedProducts] = useState([])
 
-  const product = products.find(p => p.id === params.id) || products[0]
-  
-  const productImages = [
-    { id: 1, color: 'Black' },
-    { id: 2, color: 'White' },
-    { id: 3, color: 'Pink' },
-    { id: 4, color: 'Detail' },
-  ]
+  useEffect(() => {
+    if (params.id) {
+      loadProduct()
+    }
+  }, [params.id])
 
-  const handleAddToCart = () => {
-    addToCart(product, selectedSize, quantity)
-    // Show success message
-    alert(`Added ${quantity} × ${product.name} (${selectedSize}) to cart! 🛒`)
+  const loadProduct = async () => {
+    if (!params?.id) return
+
+    try {
+      setLoading(true)
+
+      const productData = await firestore.getProductById(params.id)
+      if (!productData) return
+
+      setProduct(productData)
+      setSelectedColor(productData.colors?.[0] || '')
+
+      // Reviews (safe now)
+      const productReviews = await firestore.getProductReviews(params.id)
+      setReviews(productReviews)
+
+      // Related products
+      let relatedProductsData = []
+
+      if (productData.category) {
+        const related = await firestore.getProducts({
+          category: productData.category,
+          limit: 4
+        })
+        relatedProductsData = related.filter(p => p.id !== params.id)
+      }
+
+      setRelatedProducts(relatedProductsData)
+    } catch (error) {
+      console.error('Error loading product:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
+
+
+  const handleAddToCart = () => {
+    if (!product) return
+
+    if (!selectedSize) {
+      alert('Please select a size')
+      return
+    }
+
+    addToCart(
+      product,              // FULL product object
+      selectedSize,          // size (string)
+      quantity,              // quantity (number)
+      selectedColor          // color (string | null)
+    )
+
+    alert(`Added ${quantity} × ${product.name} (${selectedSize}) to cart!`)
+  }
+
+
+
   const handleWhatsAppShare = () => {
+    if (!product) return
+
     const message = encodeURIComponent(
       `Check out this awesome product from FibresNFools!\n\n` +
       `*${product.name}*\n` +
@@ -40,6 +96,57 @@ export default function ProductPage() {
     )
     window.open(`https://wa.me/?text=${message}`, '_blank')
   }
+
+  const addToWishlist = async () => {
+    if (!user || !product) {
+      alert('Please login to add to wishlist')
+      return
+    }
+
+    try {
+      // Add to wishlist in Firestore
+      // Implement wishlist functionality
+      alert('Added to wishlist! ❤️')
+    } catch (error) {
+      console.error('Error adding to wishlist:', error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading product...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen py-8">
+        <div className="container mx-auto px-4 text-center">
+          <div className="text-6xl mb-4">😕</div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Product Not Found</h1>
+          <p className="text-gray-600">The product you're looking for doesn't exist.</p>
+          <a href="/shop" className="btn-primary mt-6 inline-block">
+            Continue Shopping
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  const handleBuyNow = () => {
+    handleAddToCart()
+    window.location.href = '/cart'
+  }
+
 
   return (
     <div className="min-h-screen py-8">
@@ -60,31 +167,48 @@ export default function ProductPage() {
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Image Gallery */}
           <div>
+            {/* Main Product Image */}
             <div className="rounded-3xl overflow-hidden mb-4">
               <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                <div className="text-8xl">{product.emoji}</div>
+                {product.images && product.images.length > 0 ? (
+                  <img
+                    src={product.images[activeImage || 0]}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src="/placeholder-product.png"
+                    alt="Placeholder"
+                    className="w-24 h-24 object-contain opacity-50"
+                  />
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-              {productImages.map((image, index) => (
-                <button
-                  key={image.id}
-                  onClick={() => setActiveImage(index)}
-                  className={`aspect-square rounded-xl overflow-hidden border-2 ${
-                    activeImage === index
+            {/* Thumbnail Images */}
+            {product.images && product.images.length > 0 && (
+              <div className="grid grid-cols-4 gap-4">
+                {product.images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveImage(index)}
+                    className={`aspect-square rounded-xl overflow-hidden border-2 ${activeImage === index
                       ? 'border-[var(--primary)]'
                       : 'border-transparent'
-                  }`}
-                >
-                  <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-                    <div className="text-2xl">{product.emoji}</div>
-                  </div>
-                  <div className="text-xs text-center mt-1">{image.color}</div>
-                </button>
-              ))}
-            </div>
+                      }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${product.name} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
 
           {/* Product Info */}
           <div>
@@ -95,7 +219,7 @@ export default function ProductPage() {
                     NEW
                   </span>
                 )}
-                {product.originalPrice && (
+                {product.discountPrice && (
                   <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold">
                     SALE
                   </span>
@@ -105,22 +229,22 @@ export default function ProductPage() {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
                 {product.name}
               </h1>
-              
+
               <p className="text-gray-600 text-lg mb-4">
                 {product.description}
               </p>
 
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-3xl font-bold text-gray-900">
-                  ₹{product.price.toFixed(2)}
+                  ₹{product.discountPrice.toFixed(2)}
                 </span>
-                {product.originalPrice && (
+                {product.discountPrice && (
                   <>
                     <span className="text-xl text-gray-400 line-through">
-                      ₹{product.originalPrice.toFixed(2)}
+                      ₹{product.price.toFixed(2)}
                     </span>
                     <span className="text-red-600 font-bold">
-                      Save ₹{(product.originalPrice - product.price).toFixed(2)}
+                      Save ₹{(product.price - product.discountPrice).toFixed(2)}
                     </span>
                   </>
                 )}
@@ -128,53 +252,54 @@ export default function ProductPage() {
             </div>
 
             {/* Color Selector */}
-            <div className="mb-8">
-              <h3 className="font-semibold text-gray-900 mb-3">Color: {selectedColor}</h3>
-              <div className="flex gap-3">
-                {product.colors?.map(color => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
-                      selectedColor === color
+            {product.colors && product.colors.length > 0 && (
+              <div className="mb-8">
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Color: {selectedColor}
+                </h3>
+                <div className="flex gap-3">
+                  {product.colors.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${selectedColor === color
                         ? 'border-gray-900'
                         : 'border-gray-300'
-                    }`}
-                  >
-                    <div
-                      className="w-8 h-8 rounded-full"
-                      style={{
-                        backgroundColor: color.toLowerCase(),
-                        border: color.toLowerCase() === 'white' ? '1px solid #e5e7eb' : 'none'
-                      }}
-                    />
-                  </button>
-                ))}
+                        }`}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-full"
+                        style={{
+                          backgroundColor: color.toLowerCase(),
+                          border: color.toLowerCase() === 'white' ? '1px solid #e5e7eb' : 'none'
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Size Selector */}
-            <div className="mb-8">
-              <h3 className="font-semibold text-gray-900 mb-3">Size</h3>
-              <div className="flex flex-wrap gap-3">
-                {product.sizes?.map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-6 py-3 rounded-full font-medium transition-all ${
-                      selectedSize === size
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="mb-8">
+                <h3 className="font-semibold text-gray-900 mb-3">Size</h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes.map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-6 py-3 rounded-full font-medium transition-all ${selectedSize === size
                         ? 'bg-gray-900 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                        }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <a href="#" className="inline-block mt-2 text-sm text-gray-600 hover:text-[var(--primary)]">
-                View size guide
-              </a>
-            </div>
+            )}
 
             {/* Quantity & Actions */}
             <div className="mb-8">
@@ -204,23 +329,35 @@ export default function ProductPage() {
                   >
                     Add to Cart
                   </button>
-                  <button className="p-3 border border-gray-300 rounded-full hover:bg-gray-100">
-                    <FiHeart className="text-xl" />
-                  </button>
-                  <button
-                    onClick={handleWhatsAppShare}
-                    className="p-3 border border-gray-300 rounded-full hover:bg-gray-100"
-                  >
-                    <FiShare2 className="text-xl" />
-                  </button>
+
                 </div>
+
+
+              </div>
+              <div className="flex gap-3 py-5">
+                <button
+                  onClick={addToWishlist}
+                  className="p-3 border border-gray-300 rounded-full hover:bg-gray-100"
+                >
+                  <FiHeart className="text-xl" />
+                </button>
+                <button
+                  onClick={handleWhatsAppShare}
+                  className="p-3 border border-gray-300 rounded-full hover:bg-gray-100"
+                >
+                  <FiShare2 className="text-xl" />
+                </button>
               </div>
             </div>
 
             {/* Buy Now Button */}
-            <button className="w-full btn-primary mb-8">
-              Buy Now - ₹{(product.price * quantity).toFixed(2)}
-            </button>
+            {/* <button
+              onClick={handleBuyNow}
+              className="w-full btn-primary mb-8"
+            >
+              Buy Now - ₹{((product.discountPrice ?? product.price) * quantity).toFixed(2)}
+            </button> */}
+
 
             {/* Features */}
             <div className="grid grid-cols-2 gap-4 mb-8">
@@ -228,7 +365,7 @@ export default function ProductPage() {
                 <FiTruck className="text-2xl text-[var(--primary)]" />
                 <div>
                   <p className="font-semibold">Free Shipping</p>
-                  <p className="text-sm text-gray-600">Over ₹1499</p>
+                  <p className="text-sm text-gray-600">Over ₹999</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
@@ -243,35 +380,62 @@ export default function ProductPage() {
             {/* Product Details */}
             <div className="border-t pt-6">
               <h3 className="font-semibold text-gray-900 mb-3">Product Details</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li>• Premium quality fabric for maximum comfort</li>
-                <li>• Designed and printed in India</li>
-                <li>• Machine wash cold, gentle cycle</li>
-                <li>• Tumble dry low or line dry</li>
-                <li>• 100% satisfaction guarantee</li>
-              </ul>
+              <div className="text-gray-600 space-y-2">
+                {product.details?.split('\n').map((detail, index) => (
+                  <div key={index} className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>{detail}</span>
+                  </div>
+                )) || (
+                    <>
+                      <div>• Premium quality fabric for maximum comfort</div>
+                      <div>• Designed and printed in India</div>
+                      <div>• Machine wash cold, gentle cycle</div>
+                      <div>• Tumble dry low or line dry</div>
+                      <div>• 100% satisfaction guarantee</div>
+                    </>
+                  )}
+              </div>
             </div>
+
+            {/* Reviews */}
+            {reviews.length > 0 && (
+              <div className="mt-8 border-t pt-6">
+                <h3 className="font-semibold text-gray-900 mb-3">Customer Reviews</h3>
+                <div className="space-y-4">
+                  {reviews.slice(0, 2).map(review => (
+                    <div key={review.id} className="p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full"></div>
+                        <span className="font-medium">{review.userName}</span>
+                        <span className="text-yellow-500">{"★".repeat(review.rating)}</span>
+                      </div>
+                      <p className="text-gray-700">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Related Products */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">You might also like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {products
-              .filter(p => p.id !== product.id)
-              .slice(0, 4)
-              .map(relatedProduct => (
+        {relatedProducts.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">You might also like</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedProducts.map(relatedProduct => (
                 <div key={relatedProduct.id} className="card p-4">
                   <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center mb-4">
-                    <div className="text-4xl">{relatedProduct.emoji}</div>
+                    <div className="text-4xl">{relatedProduct.emoji || '👕'}</div>
                   </div>
                   <h3 className="font-semibold text-gray-900">{relatedProduct.name}</h3>
                   <p className="text-[var(--primary)] font-bold">₹{relatedProduct.price}</p>
                 </div>
               ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

@@ -147,7 +147,9 @@ import {
   FiChevronDown,
 } from 'react-icons/fi'
 
+
 export default function Navbar() {
+  const [searchQuery, setSearchQuery] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showUserDropdown, setShowUserDropdown] = useState(false)
 
@@ -168,16 +170,18 @@ export default function Navbar() {
   }, [])
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
+    <nav className="sticky top-0 z-50 bg-gray-100 backdrop-blur-md shadow-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full" />
-            <span className="text-2xl font-bold text-gray-900">
-              FibresNFools
-            </span>
+            <img
+              src="/logo-gif.gif"   // put your logo in /public/logo.png
+              alt="FibresNFools"
+              className="h-20 w-36 object-contain"
+            />
           </Link>
+
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -198,14 +202,22 @@ export default function Navbar() {
           {/* Right Section */}
           <div className="flex items-center space-x-6">
             {/* Search */}
-            <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2">
+            <div className="hidden md:flex items-center bg-white rounded-full px-4 py-2">
               <FiSearch className="text-gray-500" />
               <input
                 type="text"
-                placeholder="Search for quirky stuff..."
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    window.location.href = `/shop?search=${encodeURIComponent(searchQuery)}`
+                  }
+                }}
                 className="bg-transparent ml-2 outline-none w-48"
               />
             </div>
+
 
             {/* Cart */}
             <Link href="/cart" className="relative">
@@ -263,9 +275,9 @@ export default function Navbar() {
                       Wishlist
                     </Link> */}
 
-                    <Link href="/contact" className="text-gray-700 hover:text-[var(--primary)] font-medium">
+                    {/* <Link href="/contact" className="text-gray-700 hover:text-[var(--primary)] font-medium">
                       Contact
-                    </Link>
+                    </Link> */}
 
                     <button
                       onClick={() => {
@@ -323,9 +335,9 @@ export default function Navbar() {
               <Link href="/categories" className="mobile-link">
                 Categories
               </Link>
-              <Link href="/about" className="mobile-link">
+              {/* <Link href="/about" className="mobile-link">
                 Why FnF?
-              </Link>
+              </Link> */}
 
               {!user && (
                 <>

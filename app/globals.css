@@ -5,13 +5,22 @@
 
 
 @layer base {
+  
   :root {
-    --primary: #FF6B8B;
+    --primary: #de3f61;
     --secondary: #4ECDC4;
     --accent: #FFD166;
     --dark: #2A2D43;
     --light: #F7F9FC;
   }
+
+  /* :root {
+    --primary: #2FA4A9;
+    --secondary: #E76F51;
+    --accent: #7BC47F;
+    --dark: #1F2933;
+    --light: #F9FAFB;
+  } */
 
   html {
     scroll-behavior: smooth;
