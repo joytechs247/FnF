@@ -21,7 +21,7 @@ export default function ContactPage() {
     {
       icon: <FiMail />,
       title: 'Email',
-      details: ['support@fibresnfools.com', 'returns@fibresnfools.com'],
+      details: 'fibresnfools@gmail.com',
       color: 'text-blue-500'
     },
     // {
