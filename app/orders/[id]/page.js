@@ -4,14 +4,14 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  FiPackage,
-  FiTruck,
-  FiCheckCircle,
-  FiHome,
-  FiPhone,
-  FiPrinter,
-  FiMessageCircle,
-  FiChevronRight,
+    FiPackage,
+    FiTruck,
+    FiCheckCircle,
+    FiHome,
+    FiPhone,
+    FiPrinter,
+    FiMessageCircle,
+    FiChevronRight,
 } from "react-icons/fi";
 
 import { useAuth } from "@/context/AuthContext";
@@ -175,8 +175,8 @@ export default function OrderDetailPage() {
                                     <div key={i} className="flex gap-4 mb-4">
                                         <div
                                             className={`w-8 h-8 rounded-full flex items-center justify-center ${i <= currentIndex
-                                                    ? "bg-pink-500 text-white"
-                                                    : "bg-pink-100 text-pink-600"
+                                                ? "bg-pink-500 text-white"
+                                                : "bg-pink-100 text-pink-600"
                                                 }`}
                                         >
                                             {i + 1}
@@ -218,6 +218,11 @@ export default function OrderDetailPage() {
                                 <p className="capitalize">{order.paymentMethod}</p>
                             </div>
 
+                            <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-6">
+                                <h2 className="text-xl font-semibold mb-4">Free Gift</h2>
+                                <p className="capitalize">{order.freeGift.title}</p>
+                            </div>
+
                             {/* Actions */}
                             <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-6 space-y-3">
                                 <button className="w-full py-3 bg-pink-50 text-pink-600 rounded-lg font-semibold">
@@ -228,7 +233,7 @@ export default function OrderDetailPage() {
                                 <button
                                     onClick={() =>
                                         window.open(
-                                            `https://wa.me/91XXXXXXXXXX?text=${whatsappMessage}`,
+                                            `https://wa.me/919651743565?text=${whatsappMessage}`,
                                             "_blank"
                                         )
                                     }

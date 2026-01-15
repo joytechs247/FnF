@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block internal & non-SEO routes
+Disallow: /api/
+Disallow: /auth/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /cart/
+Disallow: /orders/
+Disallow: /_next/
+
+# Sitemap
+Sitemap: https://www.fibresnfools.com/sitemap.xml

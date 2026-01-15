@@ -1,32 +1,3 @@
-// 'use client'
-
-// import Link from 'next/link'
-
-// export default function LimitedDropBanner() {
-//   return (
-//     <section className="py-20 bg-gray-900 text-white">
-//       <div className="container mx-auto px-4 text-center">
-//         <h2 className="text-4xl font-extrabold mb-4">
-//           LIMITED DROP 🚨
-//         </h2>
-//         <p className="mb-6 opacity-80">
-//           Once it’s gone, it’s gone forever.
-//         </p>
-//         <Link
-//           href="/shop"
-//           className="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold"
-//         >
-//           Explore Drop →
-//         </Link>
-//       </div>
-//     </section>
-//   )
-// }
-
-
-
-
-
 'use client'
 
 import Link from 'next/link'
@@ -36,7 +7,7 @@ export default function LimitedDropBanner() {
     <section
       className="relative py-20 text-white overflow-hidden"
       style={{
-        backgroundImage: "url('/limit-drop-bg.png')", // 🔁 replace with your image
+        backgroundImage: "url('https://res.cloudinary.com/df90yqmzu/image/upload/v1768329856/limit-drop-bg_gcaaaa.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}

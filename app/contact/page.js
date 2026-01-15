@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { FiMail, FiPhone, FiMapPin, FiMessageSquare, FiClock, FiSend, FiCheckCircle } from 'react-icons/fi'
+import emailjs from '@emailjs/browser'
+
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -70,22 +72,38 @@ export default function ContactPage() {
     e.preventDefault()
     setLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          category: formData.category,
+          subject: formData.subject,
+          message: formData.message,
+        },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+      )
+
       setSuccess(true)
-      setLoading(false)
       setFormData({
         name: '',
         email: '',
         subject: '',
         message: '',
-        category: 'general'
+        category: 'general',
       })
 
-      // Reset success message after 5 seconds
       setTimeout(() => setSuccess(false), 5000)
-    }, 1500)
+    } catch (error) {
+      console.error('EmailJS Error:', error)
+      alert('Something went wrong. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
   }
+
 
   return (
     <div className="min-h-screen py-12">
@@ -234,10 +252,10 @@ export default function ContactPage() {
                 </p>
               </form>
 
-              
+
             </div>
 
-            
+
 
             {/* FAQ & Additional Info */}
             <div className="space-y-8">
@@ -311,7 +329,7 @@ export default function ContactPage() {
           </div>
 
           {/* Social Media Links */}
-          <div className="mt-12 card p-8 text-center">
+          {/* <div className="mt-12 card p-8 text-center">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">Connect With Us</h3>
             <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
               Follow us on social media for style inspiration, new drops, and exclusive offers!
@@ -336,7 +354,7 @@ export default function ContactPage() {
                 </a>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

@@ -440,3 +440,25 @@ export default function ProductPage() {
     </div>
   )
 }
+
+
+
+
+
+
+
+export async function generateMetadata({ params }) {
+  const product = await getProductById(params.id)
+
+  if (!product) return {}
+
+  return {
+    title: product.name,
+    description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      images: [product.images?.[0]],
+    },
+  }
+}

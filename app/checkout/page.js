@@ -31,6 +31,18 @@ export default function CheckoutPage() {
   })
   const [loading, setLoading] = useState(true)
   const [orderId, setOrderId] = useState(null)
+  const [freeGift, setFreeGift] = useState(null)
+  const [isSpinning, setIsSpinning] = useState(false)
+
+
+  const LUCKY_GIFTS = [
+    { title: 'Free Stickers Pack 🎁', code: 'FREE_STICKERS' },
+    { title: '₹100 OFF Next Order 💸', code: 'NEXT100' },
+    { title: 'Free Keychain 🔑', code: 'FREE_KEYCHAIN' },
+    { title: 'Better Luck Next Time 😄', code: 'NO_GIFT' },
+    { title: 'Free Shipping Coupon 🚚', code: 'FREE_SHIP' },
+  ]
+
 
   useEffect(() => {
     if (user) {
@@ -104,7 +116,8 @@ export default function CheckoutPage() {
         paymentMethod: paymentMethodUsed,
         status: 'processing',
         total,
-        trackingLink: ''
+        trackingLink: '',
+        freeGift: freeGift || null
       }
 
       const createdOrder = await firestore.createOrder(order)
@@ -113,7 +126,7 @@ export default function CheckoutPage() {
       await clearCart()
 
       setIsOrderPlaced(true)
-      setStep(3)
+      setStep(4)
 
     } catch (err) {
       console.error(err)
@@ -196,7 +209,7 @@ export default function CheckoutPage() {
           <div className="flex items-center justify-between relative">
             <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10"></div>
 
-            {[1, 2, 3].map((stepNumber) => (
+            {[1, 2, 3, 4].map((stepNumber) => (
               <div key={stepNumber} className="flex flex-col items-center relative z-10">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step >= stepNumber
                   ? 'bg-[var(--primary)] text-white'
@@ -206,7 +219,14 @@ export default function CheckoutPage() {
                 </div>
                 <span className={`text-sm font-medium ${step >= stepNumber ? 'text-gray-900' : 'text-gray-600'
                   }`}>
-                  {stepNumber === 1 ? 'Address' : stepNumber === 2 ? 'Payment' : 'Confirmation'}
+                  {stepNumber === 1
+                    ? 'Address'
+                    : stepNumber === 2
+                      ? 'Lucky Draw'
+                      : stepNumber === 3
+                        ? 'Payment'
+                        : 'Confirmation'}
+
                 </span>
               </div>
             ))}
@@ -334,7 +354,268 @@ export default function CheckoutPage() {
             </div>
           )}
 
+
+          {/* {step === 2 && (
+            <div className="card p-10 text-center max-w-2xl mx-auto">
+              <h2 className="text-3xl font-bold mb-4">
+                🎉 Lucky Draw Time!
+              </h2>
+
+              <p className="text-gray-600 mb-8">
+                Spin the wheel and get a surprise gift with your order.
+                Everyone gets a chance!
+              </p>
+
+              <div className="relative mx-auto w-64 h-64 mb-8">
+                <div
+                  className={`w-full h-full rounded-full border-8 border-[var(--primary)]
+        flex items-center justify-center text-center font-bold text-lg bg-white
+        transition-transform duration-[2000ms] ${isSpinning ? 'rotate-[1080deg]' : ''
+                    }`}
+                >
+                  {freeGift ? freeGift.title : '🎡 SPIN'}
+                </div>
+              </div>
+
+              {!freeGift ? (
+                <button
+                  onClick={() => {
+                    setIsSpinning(true)
+
+                    setTimeout(() => {
+                      const gift =
+                        LUCKY_GIFTS[Math.floor(Math.random() * LUCKY_GIFTS.length)]
+                      setFreeGift(gift)
+                      setIsSpinning(false)
+                    }, 2000)
+                  }}
+                  disabled={isSpinning}
+                  className="btn-primary px-8 py-3 text-lg"
+                >
+                  {isSpinning ? 'Spinning...' : 'Try Your Luck 🎁'}
+                </button>
+              ) : (
+                <>
+                  <div className="mt-6 p-4 bg-green-50 rounded-xl">
+                    <p className="font-semibold text-green-800">
+                      You got: {freeGift.title}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setStep(3)}
+                    className="btn-primary mt-6 px-8 py-3"
+                  >
+                    Continue to Payment
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => setStep(1)}
+                className="mt-6 text-gray-500 hover:text-gray-800"
+              >
+                ← Back to Address
+              </button>
+            </div>
+          )} */}
+
+
+
+
+
           {step === 2 && (
+  <div className="card p-6 md:p-10 text-center max-w-2xl mx-auto bg-gradient-to-br from-white to-yellow-50 border-2 border-yellow-200 shadow-2xl shadow-yellow-100/30 rounded-3xl">
+    {/* Fun header with confetti effect */}
+    <div className="relative mb-6">
+      <div className="absolute -top-2 -left-2 text-2xl">🎁</div>
+      <div className="absolute -top-2 -right-2 text-2xl">✨</div>
+      <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+        🎪 FIBRES & FOOLS LUCKY DRAW! 🎪
+      </h2>
+      <p className="text-sm text-yellow-600 mt-1">Your fate is in the yarns!</p>
+    </div>
+
+    {/* Fun description */}
+    <div className="bg-gradient-to-r from-orange-50 to-yellow-50 p-4 md:p-6 rounded-2xl border-2 border-dashed border-yellow-300 mb-8">
+      <p className="text-gray-700 font-medium text-lg">
+        <span className="text-orange-500 font-bold">🎡 Spin the wheel</span> and let the knitting gods decide your fate!
+      </p>
+      <p className="text-gray-600 mt-2">
+        Every fool gets a surprise! <span className="text-pink-500 font-semibold">No empty spins!</span>
+      </p>
+    </div>
+
+    {/* Enhanced Wheel Container */}
+    <div className="relative mx-auto w-72 h-72 md:w-80 md:h-80 mb-10">
+      {/* Decorative outer ring */}
+      <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400 opacity-20 animate-pulse"></div>
+      
+      {/* Wheel shadow effect */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-200/50 to-orange-200/30 blur-lg"></div>
+      
+      {/* The actual wheel */}
+      <div className="relative z-10">
+        <div
+          className={`w-full h-full rounded-full border-8 border-gradient-to-r from-yellow-400 to-orange-500
+            flex items-center justify-center text-center font-bold text-2xl
+            bg-gradient-to-br from-white via-yellow-50 to-orange-50
+            shadow-2xl shadow-orange-200/50
+            transition-[transform] duration-[2000ms] ease-out
+            ${isSpinning ? 'rotate-[1440deg] scale-105' : ''
+            }`}
+          style={{
+            borderImage: 'linear-gradient(45deg, #fbbf24, #f97316, #ec4899) 1'
+          }}
+        >
+          <div className="relative">
+            {!freeGift ? (
+              <div className="animate-bounce">
+                <span className="text-4xl">🎡</span>
+                <p className="text-lg mt-2 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-black">
+                  SPIN ME!
+                </p>
+              </div>
+            ) : (
+              <div className="animate-pulse">
+                <p className="text-3xl">{freeGift.emoji || '🎁'}</p>
+                <p className="text-xl mt-2 text-gray-800">{freeGift.title}</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Wheel pointer */}
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <div className="w-0 h-0 border-l-[20px] border-r-[20px] border-b-[30px] border-l-transparent border-r-transparent border-b-red-500"></div>
+          <div className="w-2 h-8 bg-red-500 mx-auto"></div>
+        </div>
+        
+        {/* Decorative dots around wheel */}
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={i}
+            className={`absolute w-4 h-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400
+              ${i % 2 === 0 ? 'animate-ping' : 'animate-pulse'}`}
+            style={{
+              top: `${Math.sin((i * Math.PI) / 4) * 110 + 50}%`,
+              left: `${Math.cos((i * Math.PI) / 4) * 110 + 50}%`,
+            }}
+          ></div>
+        ))}
+      </div>
+    </div>
+
+    {/* Spin Button Area */}
+    {!freeGift ? (
+      <div className="space-y-6">
+        <button
+          onClick={() => {
+            setIsSpinning(true);
+            // Optional: Add sound effect here if desired
+            // new Audio('/spin-sound.mp3').play();
+            
+            setTimeout(() => {
+              const gift = LUCKY_GIFTS[Math.floor(Math.random() * LUCKY_GIFTS.length)];
+              setFreeGift(gift);
+              setIsSpinning(false);
+            }, 2000);
+          }}
+          disabled={isSpinning}
+          className={`
+            relative px-10 py-4 text-xl font-bold rounded-2xl
+            bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500
+            hover:from-yellow-600 hover:via-orange-600 hover:to-pink-600
+            text-white shadow-lg hover:shadow-xl hover:scale-105
+            transform transition-all duration-300
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+            group overflow-hidden
+          `}
+        >
+          {/* Shine effect on hover */}
+          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+          
+          <span className="relative flex items-center justify-center gap-3">
+            {isSpinning ? (
+              <>
+                <span className="animate-spin">🌀</span>
+                Spinning like a top...
+              </>
+            ) : (
+              <>
+                <span className="animate-bounce">🎲</span>
+                TRY YOUR LUCK, FOOL! 
+                <span className="animate-bounce">🎲</span>
+              </>
+            )}
+          </span>
+        </button>
+        
+        <p className="text-gray-500 text-sm animate-pulse">
+          ⚡ Click fast before your luck runs out!
+        </p>
+      </div>
+    ) : (
+      /* Win Celebration Area */
+      <>
+        <div className="animate-jump animate-once animate-duration-1000">
+          <div className="relative inline-block">
+            <div className="absolute -inset-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full blur-lg opacity-50"></div>
+            <div className="relative p-6 md:p-8 bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl border-4 border-emerald-300 shadow-lg">
+              <div className="text-5xl mb-4 animate-bounce">🏆</div>
+              <p className="font-bold text-2xl text-emerald-800 mb-2">
+                CONGRATS, LUCKY FOOL!
+              </p>
+              <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full text-white font-semibold">
+                <span className="text-2xl">{freeGift.emoji || '🎁'}</span>
+                <span className="text-xl">{freeGift.title}</span>
+                <span className="text-2xl">{freeGift.emoji || '🎁'}</span>
+              </div>
+              <p className="text-emerald-700 mt-4 font-medium">
+                Your gift awaits in the cart! 
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setStep(3)}
+          className="mt-8 px-10 py-4 text-lg font-bold rounded-xl
+            bg-gradient-to-r from-blue-500 to-purple-600
+            hover:from-blue-600 hover:to-purple-700
+            text-white shadow-lg hover:shadow-xl hover:scale-105
+            transform transition-all duration-300"
+        >
+           Continue to Payment
+        </button>
+      </>
+    )}
+
+    {/* Navigation */}
+    <div className="mt-10 pt-6 border-t border-gray-200">
+      <button
+        onClick={() => setStep(1)}
+        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 
+          font-medium transition-colors duration-200 hover:scale-105"
+      >
+        <span className="text-xl">↶</span>
+        Back to Address (Your stuff won't run away!)
+      </button>
+      
+      {/* Progress indicator */}
+      <div className="mt-4 flex items-center justify-center gap-2">
+        <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500"></div>
+        <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+        <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+          {step === 3 && (
             <div className="grid md:grid-cols-2 gap-8">
               {/* Payment Methods */}
               <div className="card p-6">
@@ -492,7 +773,7 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          {step === 3 && isOrderPlaced && (
+          {step === 4 && isOrderPlaced && (
             <div className="card p-12 text-center">
               <div className="text-6xl mb-6">🎉</div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Order Placed Successfully!</h2>

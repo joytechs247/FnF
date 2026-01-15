@@ -191,10 +191,13 @@ export default function HeroSection() {
             transition={{ duration: 0.6 }}
             className="order-1 md:order-2"
           >
-            <div className="inline-flex items-center gap-2 bg-white/80 px-4 py-2 rounded-full mb-6">
-              <span className="text-sm font-semibold text-gray-800">
-                🔥 New Drops Every Friday | Limited Stock
+            <div className="inline-flex items-center gap-2  px-4 py-2 rounded-full mb-6">
+              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200">
+                🎁 Free Gifts on All Orders
               </span>
+
+
+
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">

@@ -9,28 +9,33 @@ const features = [
   {
     icon: <FiCheckCircle className="text-3xl" />,
     title: "Quality You Can Feel",
-    description: "Premium fabrics that don't just look good, but feel amazing too. We test every thread!",
-    color: "text-[var(--secondary)]"
+    description:
+      "Premium fabrics that don’t just look good — they feel incredible. Every piece is tested, worn, and approved before it reaches you.",
+    color: "text-[var(--secondary)]",
   },
   {
     icon: <FiSmile className="text-3xl" />,
-    title: "Designed to Make You Smile",
-    description: "Our designs come with a side of humor. Because fashion should be fun, not serious!",
-    color: "text-[var(--primary)]"
+    title: "Free Gifts on Every Order",
+    description:
+      "Every order comes with a surprise. Spin, unwrap, and discover free goodies that make opening your package even more fun.",
+    color: "text-emerald-500",
   },
   {
     icon: <FiTrendingUp className="text-3xl" />,
-    title: "Trendsetting, Not Trend-Following",
-    description: "We create trends, not chase them. Be the first to rock styles everyone will want tomorrow.",
-    color: "text-[var(--accent)]"
+    title: "Design It Your Way",
+    description:
+      "Pick a product, describe your idea in a prompt, and watch your design come alive. Your creativity, our canvas.",
+    color: "text-[var(--accent)]",
   },
   {
     icon: <FiUsers className="text-3xl" />,
     title: "By Gen-Z, For Gen-Z",
-    description: "Our design team is 100% Gen-Z. We get what you want because we want it too!",
-    color: "text-purple-500"
+    description:
+      "Built by people who live the culture. We design what we’d actually wear — unapologetic, expressive, and bold.",
+    color: "text-purple-500",
   },
 ]
+
 
 export default function BrandStory() {
   return (
@@ -47,17 +52,18 @@ export default function BrandStory() {
               Why <span className="text-[var(--primary)]">Fibres</span> &{' '}
               <span className="text-[var(--secondary)]">Fools</span>?
             </h2>
-            
+
             <div className="space-y-6">
               <p className="text-gray-700 text-lg">
-                We started with a simple idea: fashion should be fun, comfortable, and uniquely you. No boring basics, no following trends—just authentic expression.
+                We started with one belief: fashion should be fun, comfortable, and unapologetically you. No boring basics, no copying trends — just expressive designs made to stand out.
               </p>
-              
+
+
               <p className="text-gray-600">
                 What makes us different? We're not just selling clothes; we're creating a community. Each design tells a story, each thread carries laughter, and every piece is made with love (and a little bit of mischief).
               </p>
-              
-              <div className="flex items-center gap-4 mt-8">
+
+              {/* <div className="flex items-center gap-4 mt-8">
                 <div className="flex -space-x-4">
                   {[1, 2, 3, 4].map(i => (
                     <div
@@ -72,7 +78,7 @@ export default function BrandStory() {
                   <p className="font-semibold">Join 10,000+ Happy Fools</p>
                   <p className="text-sm text-gray-500">Already rocking our vibe</p>
                 </div>
-              </div>
+              </div> */}
             </div>
           </motion.div>
 
@@ -115,7 +121,7 @@ export default function BrandStory() {
           className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 text-center"
         >
           {[
-            { label: 'Happy Customers', value: '10K+', emoji: '😊' },
+            { label: 'Happy Customers', value: '1K+', emoji: '😊' },
             { label: 'Unique Designs', value: '200+', emoji: '🎨' },
             { label: 'Cities Delivered', value: '50+', emoji: '📍' },
             { label: 'Avg. Rating', value: '4.9★', emoji: '⭐' },

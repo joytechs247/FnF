@@ -14,7 +14,7 @@ export default function Footer() {
               
               <Link href="/" className="flex items-center space-x-2">
                 <img
-                  src="/logo.png"   // put your logo in /public/logo.png
+                  src="/logo.png"   
                   alt="FibresNFools"
                   className="h-15 w-full object-contain"
                 />
@@ -23,7 +23,7 @@ export default function Footer() {
             <p className="text-gray-400 mb-6">
               We create streetwear that makes you smile. Quality fabrics, quirky designs, and good vibes only.
             </p>
-            <div className="flex space-x-4">
+            {/* <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
                 <FiInstagram className="text-2xl" />
               </a>
@@ -36,7 +36,7 @@ export default function Footer() {
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
                 <FiYoutube className="text-2xl" />
               </a>
-            </div>
+            </div> */}
           </div>
 
           {/* Quick Links */}

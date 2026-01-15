@@ -135,27 +135,22 @@ const categories = [
   {
     id: 'men',
     name: 'Menswear',
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=900&h=1200&fit=crop',
+    image: 'https://res.cloudinary.com/df90yqmzu/image/upload/v1768329816/men-wear_h3hicx.png',
   },
   {
     id: 'women',
     name: 'Womenswear',
-    image: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?w=900&h=1200&fit=crop',
+    image: 'https://res.cloudinary.com/df90yqmzu/image/upload/v1768329816/woomen-wear_q2ouao.png',
   },
   {
     id: 'oversized',
     name: 'Oversized Fits',
-    image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=900&h=1200&fit=crop',
+    image: 'https://res.cloudinary.com/df90yqmzu/image/upload/v1768329856/oversized-wear_wfbior.png',
   },
   {
     id: 'hoodies',
     name: 'Hoodies',
-    image: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=900&h=1200&fit=crop',
-  },
-  {
-    id: 'limited',
-    name: 'Limited Drops',
-    image: 'https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?w=900&h=1200&fit=crop',
+    image: 'https://res.cloudinary.com/df90yqmzu/image/upload/v1768329851/hoodies-wear_equwdy.png',
   },
 ]
 
@@ -167,7 +162,7 @@ export default function Categories() {
           Shop by <span className="text-[var(--secondary)]">Style</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((cat, i) => (
             <motion.div
               key={cat.id}
@@ -177,7 +172,7 @@ export default function Categories() {
               viewport={{ once: true }}
             >
               <Link
-                href={`/shop?category=${cat.id}`}
+                href={`/categories/${cat.id}`}
                 className="group relative block h-[280px] sm:h-[320px] rounded-3xl overflow-hidden shadow-lg"
               >
                 {/* Background Image */}
@@ -192,9 +187,9 @@ export default function Categories() {
 
                 {/* Content */}
                 <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
-                  <span className="text-xl sm:text-2xl font-bold text-white">
+                  {/* <span className="text-xl sm:text-2xl font-bold text-white">
                     {cat.name}
-                  </span>
+                  </span> */}
                   <span className="text-white text-sm font-semibold opacity-80 group-hover:opacity-100 transition">
                     Explore →
                   </span>
