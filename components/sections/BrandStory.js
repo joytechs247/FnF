@@ -82,11 +82,11 @@ export default function BrandStory() {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
+          <div
+            // initial={{ opacity: 0, x: 50 }}
+            // whileInView={{ opacity: 1, x: 0 }}
+            // transition={{ duration: 0.5, delay: 0.2 }}
+            // viewport={{ once: true }}
             className="grid grid-cols-1 sm:grid-cols-2 gap-6"
           >
             {features.map((feature, index) => (
@@ -109,11 +109,11 @@ export default function BrandStory() {
                 </p>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
 
         {/* Fun Stats */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
@@ -132,7 +132,7 @@ export default function BrandStory() {
               <div className="text-gray-600 text-sm mt-2">{stat.label}</div>
             </div>
           ))}
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   )
