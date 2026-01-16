@@ -202,7 +202,7 @@ export default function OrderDetailPage() {
                         <div className="space-y-8">
 
                             {/* Address */}
-                            <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-6">
+                            {/* <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-6">
                                 <h2 className="text-xl font-semibold mb-4">Delivery Address</h2>
                                 <p>
                                     {typeof order.address === "string"
@@ -210,7 +210,26 @@ export default function OrderDetailPage() {
                                         : order.address?.address}
                                 </p>
 
+                            </div> */}
+
+                            <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-6">
+                                <h2 className="text-xl font-semibold mb-4">Delivery Address</h2>
+
+                                {typeof order.address === 'string' ? (
+                                    <p>{order.address}</p>
+                                ) : (
+                                    <div className="space-y-1 text-sm text-gray-700">
+                                        <p className="font-semibold">{order.address?.name}</p>
+                                        <p>{order.address?.phone}</p>
+                                        <p>{order.address?.address}</p>
+                                        <p>
+                                            {order.address?.city}, {order.address?.state} -{' '}
+                                            {order.address?.pincode}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
+
 
                             {/* Payment */}
                             <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-6">

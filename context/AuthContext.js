@@ -31,55 +31,55 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  
+
+  const cartSyncedRef = useRef(false)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser)
 
 
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-    if (firebaseUser) {
-      setUser(firebaseUser)
 
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
 
+          if (userDoc.exists()) {
+            setUserProfile({ id: userDoc.id, ...userDoc.data() })
+          } else {
+            const newUserProfile = {
+              email: firebaseUser.email,
+              displayName:
+                firebaseUser.displayName ||
+                firebaseUser.email.split('@')[0],
+              photoURL: firebaseUser.photoURL || null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              role: 'customer',
+              phoneNumber: '',
+              addresses: [],
+              wishlist: [],
+              cart: []
+            }
 
-      try {
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-
-        if (userDoc.exists()) {
-          setUserProfile({ id: userDoc.id, ...userDoc.data() })
-        } else {
-          const newUserProfile = {
-            email: firebaseUser.email,
-            displayName:
-              firebaseUser.displayName ||
-              firebaseUser.email.split('@')[0],
-            photoURL: firebaseUser.photoURL || null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            role: 'customer',
-            phoneNumber: '',
-            addresses: [],
-            wishlist: [],
-            cart: []
+            await setDoc(doc(db, 'users', firebaseUser.uid), newUserProfile)
+            setUserProfile({ id: firebaseUser.uid, ...newUserProfile })
           }
-
-          await setDoc(doc(db, 'users', firebaseUser.uid), newUserProfile)
-          setUserProfile({ id: firebaseUser.uid, ...newUserProfile })
+        } catch (error) {
+          console.error('Error fetching user profile:', error)
+          setUserProfile(null)
         }
-      } catch (error) {
-        console.error('Error fetching user profile:', error)
+      } else {
+        setUser(null)
         setUserProfile(null)
+        cartSyncedRef.current = false // reset on logout
       }
-    } else {
-      setUser(null)
-      setUserProfile(null)
-      cartSyncedRef.current = false // reset on logout
-    }
 
-    setLoading(false)
-  })
+      setLoading(false)
+    })
 
-  return unsubscribe
-}, [])
+    return unsubscribe
+  }, [])
 
 
   const login = (email, password) => {
