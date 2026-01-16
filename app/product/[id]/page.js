@@ -234,7 +234,7 @@ export default function ProductPage() {
                 {product.description}
               </p>
 
-              <div className="flex items-center gap-3 mb-6">
+              {/* <div className="flex items-center gap-3 mb-6">
                 <span className="text-3xl font-bold text-gray-900">
                   ₹{product.discountPrice.toFixed(2)}
                 </span>
@@ -248,7 +248,26 @@ export default function ProductPage() {
                     </span>
                   </>
                 )}
+              </div> */}
+
+
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-3xl font-bold text-gray-900">
+                  ₹{(product.discountPrice ?? product.price).toFixed(2)}
+                </span>
+
+                {product.discountPrice != null && (
+                  <>
+                    <span className="text-xl text-gray-400 line-through">
+                      ₹{product.price.toFixed(2)}
+                    </span>
+                    <span className="text-red-600 font-bold">
+                      Save ₹{(product.price - product.discountPrice).toFixed(2)}
+                    </span>
+                  </>
+                )}
               </div>
+
             </div>
 
             {/* Color Selector */}

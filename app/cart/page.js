@@ -33,7 +33,7 @@ export default function CartPage() {
   }
 
   const cartTotal = getCartTotal()
-  const shipping = cartTotal > 1499 ? 0 : 99
+  const shipping = cartTotal > 499 ? 0 : 99
   const total = cartTotal + shipping
 
   if (cartLoading) {
