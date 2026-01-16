@@ -339,7 +339,7 @@ export default function SignupPage() {
           </form>
 
           {/* Perks */}
-          <div className="mt-8 p-4 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--secondary)]/10 rounded-xl">
+          {/* <div className="mt-8 p-4 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--secondary)]/10 rounded-xl">
             <h3 className="font-semibold text-gray-900 mb-2">🎁 Welcome Perks</h3>
             <ul className="text-sm text-gray-700 space-y-1">
               <li>• 15% off your first order</li>
@@ -347,7 +347,7 @@ export default function SignupPage() {
               <li>• Member-only sales</li>
               <li>• Free shipping over ₹1499</li>
             </ul>
-          </div>
+          </div> */}
 
           {/* Login Link */}
           <div className="mt-8 pt-6 border-t border-gray-200">
